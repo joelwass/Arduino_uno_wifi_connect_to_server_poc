@@ -21,7 +21,7 @@ char ssid[] = "network_id";    //  your network SSID (name)
 char pass[] = "network_password";   // your network password
 
 char SERVER_ADDRESS[] = "google.com"; // hostname of web server
-const int PORT = 80; // port of the server
+const int PORT = 80; // port of the server, should be 443 if connecting over SSL (https)
 
 int status = WL_IDLE_STATUS;
 
@@ -71,12 +71,9 @@ void setup() {
 
   Serial.println("Connected to wifi");
   Serial.println("\nStarting server request...");
-  // if you get a connection, report back via serial:
-  if (client.connect(SERVER_ADDRESS, PORT)) {
-    Serial.println("connected to server");
-    // Make a HTTP request:
-    makeGetRequest("/");
-  }
+
+  makeConnection();
+  makeGetRequest("/");
 }
 
 // the loop function runs over and over again forever
@@ -131,4 +128,25 @@ void makePostRequest(String body, String path) {
   client.println("Connection: close");
   client.println(); // end HTTP request header
   client.println(body);
+}
+
+// If you're going to make multiple http requests, create the connection one
+// time in the setup() method and then makeGetRequest and makePostRequest
+// can be called serially and use the same http connection.
+void makeConnection() {
+  if (client.connect(SERVER_ADDRESS, PORT)) {
+    Serial.println("connected to server");
+  } else {
+    Serial.println("failed to connect to server");
+  }
+}
+
+// Connection method for making an https connection
+void makeHttpsConnection() {
+  // Port should be 443
+  if (client.connectSSL(SERVER_ADDRESS, PORT)) {
+    Serial.println("connected to server");
+  } else {
+    Serial.println("failed to connect to server");
+  }
 }
